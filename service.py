@@ -6,16 +6,19 @@ import comp
 
 class Editor (Frame):
 	
-	def __init__(self,parent=None,id=None):
+	def __init__(self,parent=None,id=None,table="service",fieldname="name",fieldrate="rate"):
 		if not parent:
 			parent=Toplevel()
 		Frame.__init__(self,parent)
+		self.table=table
+		self.fieldname=fieldname
+		self.fieldrate=fieldrate
 		self.serviceid=None
 		self.lister=None
 		self.name=StringVar()
 		self.rate=DoubleVar()
-		Label(self,text="service").grid(row=0,column=0)
-		Label(self,text="rate").grid(row=1,column=0)
+		Label(self,text=self.table).grid(row=0,column=0)
+		Label(self,text=fieldrate).grid(row=1,column=0)
 		Entry(self,text=self.name).grid(row=0,column=1,sticky=E+W,padx=10,pady=10)
 		Entry(self,text=self.rate).grid(row=1,column=1,sticky=E+W,padx=10,pady=10)
 		self.save=Button(self,text="save",command=self.save)
@@ -30,7 +33,7 @@ class Editor (Frame):
 			self.rate.set("")
 			return
 		cur=cdb.Db().connection().cursor()
-		cur.execute("select * from service where id=%s;",[id])
+		cur.execute("select * from "+self.table+" where id=%s;",[id])
 		row=cur.fetchone()
 		self.name.set(row[1])
 		self.rate.set(row[2])
@@ -40,15 +43,21 @@ class Editor (Frame):
 		
 	def save(self):
 		if self.serviceid:
-			sql="update service set name=%s, rate=%s where id=%s;"
+			print "serviceid"
+			print self.table
+			sql="update "+self.table+" set %s=%s, %s=%s where id=%s;"
+			argtable=(self.fieldname,self.name.get(),self.fieldrate,self.rate.get(),self.serviceid)
 			infostring="service updated"
 		else:
-			sql="insert into service(name,rate) values(%s,%s);"
+			print "noserviceid"
+			sql="insert into "+self.table+" (%s,%s) values(%s,%s);"
+			argtable=(self.fieldname,self.fieldrate,self.name,get(),self.rate.get())
 			infostring="added service"
 		con=cdb.Db().connection()
 		cur=con.cursor()
 		try:
-			cur.execute(sql,[self.name.get(),self.rate.get(),self.serviceid])
+			print argtable
+			cur.execute(sql,argtable)
 			con.commit()
 			tmb.showinfo("Success",infostring,parent=self.master)
 			self.lister.reload()
@@ -116,7 +125,7 @@ class Lister(Frame):
 class Service(Frame):
 	def __init__(self,parent=None,*arg,**karg):
 		if not parent:
-			parent=Tk()
+			parent=Toplevel()
 		Frame.__init__(self,parent,*arg,**karg)
 		self.pack()
 		e=Editor(self)
@@ -127,4 +136,4 @@ class Service(Frame):
 		
 		
 if __name__=="__main__":
-	Service().mainloop()
+	Service(Tk()).mainloop()
