@@ -45,8 +45,8 @@ class Editor (Frame):
 		if self.serviceid:
 			print "serviceid"
 			print self.table
-			sql="update "+self.table+" set %s=%s, %s=%s where id=%s;"
-			argtable=(self.fieldname,self.name.get(),self.fieldrate,self.rate.get(),self.serviceid)
+			sql="update "+self.table+" set `"+self.fieldname+"`='"+str(self.name.get())+"', `"+self.fieldrate+"`="+str(self.rate.get())+" where id=%s;"
+			argtable=[self.serviceid]
 			infostring="service updated"
 		else:
 			print "noserviceid"
@@ -56,7 +56,7 @@ class Editor (Frame):
 		con=cdb.Db().connection()
 		cur=con.cursor()
 		try:
-			print argtable
+			print argtable, sql
 			cur.execute(sql,argtable)
 			con.commit()
 			tmb.showinfo("Success",infostring,parent=self.master)
