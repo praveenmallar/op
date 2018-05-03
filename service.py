@@ -43,20 +43,16 @@ class Editor (Frame):
 		
 	def save(self):
 		if self.serviceid:
-			print "serviceid"
-			print self.table
 			sql="update "+self.table+" set `"+self.fieldname+"`='"+str(self.name.get())+"', `"+self.fieldrate+"`="+str(self.rate.get())+" where id=%s;"
 			argtable=[self.serviceid]
 			infostring="service updated"
 		else:
-			print "noserviceid"
-			sql="insert into "+self.table+" (%s,%s) values(%s,%s);"
-			argtable=(self.fieldname,self.fieldrate,self.name,get(),self.rate.get())
+			sql="insert into `"+self.table+"` (`"+self.fieldname+"`,`"+self.fieldrate+"`) values(%s,%s);"
+			argtable=(self.name.get(),self.rate.get())
 			infostring="added service"
 		con=cdb.Db().connection()
 		cur=con.cursor()
 		try:
-			print argtable, sql
 			cur.execute(sql,argtable)
 			con.commit()
 			tmb.showinfo("Success",infostring,parent=self.master)
