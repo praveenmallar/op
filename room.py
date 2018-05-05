@@ -25,20 +25,10 @@ class Room (Frame):
 		Entry(f,textvariable=self.editbox).pack(expand=1,pady=10)
 		self.add=Button(f,text="Add",command=self.add)
 		self.add.pack(side=LEFT,padx=20)
-		self.reset=Button(f,text="Reset",command=self.reset)
-		self.reset.pack(side=LEFT,padx=20)
-		self.packitems()
-		
-	def packitems(self):
-		cur=cdb.Db().connection().cursor()
-		sql="select * from room order by cast(room_num as unsigned), room_num;"
-		cur.execute(sql)
-		rows=cur.fetchall()
-		rooms=[]
-		for r in rows:
-			rooms.append([r[1],r[0]])
-		self.rooms.changelist(rooms)
+		self.rest=Button(f,text="Reset",command=self.reset)
+		self.rest.pack(side=LEFT,padx=20)
 		self.editroom=None
+		self.packitems()
 		
 	def add(self):
 		room=self.editbox.get()
@@ -53,10 +43,21 @@ class Room (Frame):
 		cur.execute(sql,values)
 		con.commit()
 		self.packitems()
-		self.editbox.set("")		
 		
 	def reset(self):
-		pass
+		self.editroom=None
+		self.editbox.set("")
+		
+	def packitems(self):
+		cur=cdb.Db().connection().cursor()
+		sql="select * from room order by cast(room_num as unsigned), room_num;"
+		cur.execute(sql)
+		rows=cur.fetchall()
+		rooms=[]
+		for r in rows:
+			rooms.append([r[1],r[0]])
+		self.rooms.changelist(rooms)
+		self.reset()
 		
 	def edit(self):
 		room=self.rooms.get()
@@ -64,7 +65,16 @@ class Room (Frame):
 		self.editbox.set(room[0])
 		
 	def delete(self):
-		pass
+		room=self.rooms.get()
+		if not tmb.askyesno("Confirm", "delete room "+room[0]+" ?"):
+			return
+		sql ="delete from room where id=%s;"
+		con=cdb.Db().connection()
+		cur=con.cursor()
+		cur.execute(sql,[room[1]])
+		con.commit()
+		self.packitems()
+		
 		
 if __name__=="__main__":
 	Room(Tk()).mainloop()
