@@ -32,6 +32,8 @@ class Room (Frame):
 		
 	def add(self):
 		room=self.editbox.get()
+		if not tmb.askyesno("Confirm","Update the room " + room +"?"):
+			return
 		if self.editroom==None:
 			sql="insert into room (room_num) values (%s);"
 			values=[room]
