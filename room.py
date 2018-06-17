@@ -11,6 +11,14 @@ class Room (Frame):
 			parent=Toplevel()
 		Frame.__init__(self,parent)
 		self.pack()
+		f=Frame(self)
+		f.pack(side=RIGHT,padx=10,pady=10)
+		sb=Scrollbar(f)
+		sb.pack(side=RIGHT,fill=Y)
+		self.canvas=Canvas(f,bd=1,relief=SUNKEN,yscrollcommand=sb.set,width=240,height=200)
+		self.canvas.pack(fill=BOTH,expand=1)
+		self.canvas.roomrates=[]
+		sb.config(command=self.canvas.yview)
 		self.rooms=comp.myComp2(self,listheight=10)
 		self.rooms.pack()
 		f=Frame(self)
@@ -43,6 +51,14 @@ class Room (Frame):
 		con=cdb.Db().connection()
 		cur=con.cursor()
 		cur.execute(sql,values)
+		if self.editroom==None:
+			pass
+		else:
+			for e in self.canvas.roomrates:
+				rate=e.get()
+				service=e.id()
+				sql ="insert into 
+				sql="update roomservice set rate=%s where room=%s and service=%s"
 		con.commit()
 		self.packitems()
 		
@@ -65,6 +81,30 @@ class Room (Frame):
 		room=self.rooms.get()
 		self.editroom=room[1]
 		self.editbox.set(room[0])
+		cur=cdb.Db().connection().cursor()
+		sql=("select roomservicelist.id as id,roomservicelist.name as service, roomservicelist.defaultrate as defaultrate, "
+			 "roomservice.rate as rate from roomservicelist left join roomservice on roomservicelist.id=roomservice.service "
+			 "and roomservice.room=%s left join room on roomservice.room=room.id;")
+		cur.execute(sql,[room[1]])
+		rows=cur.fetchall()
+		self.canvas.delete(ALL)
+		i=0
+		for r in rows:
+			f=Frame(self.canvas,bd=1,relief=RIDGE,pady=5)
+			Label(f,text=r[1],width=20).pack(side=LEFT)
+			e=DoubleVar()
+			e.service=r[0]
+			if r[3] is None:
+				e.set(r[2])
+			else:
+				e.set(r[3])
+			Entry(f,textvariable=e,width=8).pack(side=LEFT)
+			self.canvas.roomrates.append(e)
+			self.canvas.create_window(1,1+i*32,window=f,anchor=NW)
+			i=i+1
+		self.canvas.update_idletasks()
+		self.canvas.config(scrollregion=self.canvas.bbox(ALL))
+			
 		
 	def delete(self):
 		room=self.rooms.get()
