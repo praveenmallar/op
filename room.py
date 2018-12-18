@@ -42,23 +42,27 @@ class Room (Frame):
 		room=self.editbox.get()
 		if not tmb.askyesno("Confirm","Update the room " + room +"?"):
 			return
+		con=cdb.Db().connection()
+		cur=con.cursor()
 		if self.editroom==None:
 			sql="insert into room (room_num) values (%s);"
 			values=[room]
+			cur.execute(sql,values)
+			room=cur.lastrowid
 		else:
 			sql="update room set room_num=%s where id=%s;"
 			values=[room,self.editroom]
-		con=cdb.Db().connection()
-		cur=con.cursor()
-		cur.execute(sql,values)
-		if self.editroom==None:
-			pass
-		else:
-			for e in self.canvas.roomrates:
-				rate=e.get()
-				service=e.id()
-				sql ="insert into 
-				sql="update roomservice set rate=%s where room=%s and service=%s"
+			cur.execute(sql,values)
+			room=self.editroom
+		con.commit()
+		for e in self.canvas.roomrates:
+			rate=e.get()
+			service=e.id
+			sql="update roomservice set rate=%s where room=%s and service=%s;"
+			cur.execute(sql,(rate,room,service))
+			if cur.rowcount==0:
+				sql ="insert ignore into roomservice(room,service,rate) values(%s,%s,%s);" 
+				cur.execute(sql,(room,service,rate))
 		con.commit()
 		self.packitems()
 		
@@ -93,7 +97,7 @@ class Room (Frame):
 			f=Frame(self.canvas,bd=1,relief=RIDGE,pady=5)
 			Label(f,text=r[1],width=20).pack(side=LEFT)
 			e=DoubleVar()
-			e.service=r[0]
+			e.id=r[0]
 			if r[3] is None:
 				e.set(r[2])
 			else:
