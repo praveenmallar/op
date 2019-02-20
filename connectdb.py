@@ -53,6 +53,7 @@ class DbVariables(Frame):
 		sh=shelve.open('data.db')
 		for k in self.hash:
 			sh[k]=self.hash[k].get()
+		sh.close()
 		self.parent.destroy()
 
 def checkdb():
